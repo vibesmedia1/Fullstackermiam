@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>MiAmor – Payment Gateway</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --mi-blue-1:#001F4D; --mi-blue-2:#003399;
+      --mi-grad-1:#0033FF; --mi-grad-2:#3399FF;
+      --mi-soft:#f3f7ff; --mi-soft-2:#eaf2ff;
+      --mi-warning:#fff3cd; --mi-warning-border:#ffdd57;
+      --shadow-lg:0 22px 50px rgba(0,0,0,.28);
+
+      /* Fluid type */
+      --fs-2xs: clamp(10px, 0.78vw, 12px);
+      --fs-xs:  clamp(11px, 0.9vw, 13px);
+      --fs-sm:  clamp(12px, 1.0vw, 14px);
+      --fs-md:  clamp(13px, 1.2vw, 16px);
+      --fs-lg:  clamp(14px, 1.6vw, 18px);
+      --fs-xl:  clamp(16px, 2.1vw, 22px);
+      --fs-2xl: clamp(18px, 2.6vw, 26px);
+
+      /* Fluid spacing */
+      --pad-1: clamp(8px, 1.5vw, 12px);
+      --pad-2: clamp(10px, 2vw, 16px);
+      --pad-3: clamp(12px, 2.4vw, 22px);
+      --gap-1: clamp(6px, 1.2vw, 12px);
+      --gap-2: clamp(8px, 1.6vw, 16px);
+      --gap-3: clamp(10px, 2vw, 22px);
+    }
+
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
+      color:#0f1f4a;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.15), transparent 60%),
+        radial-gradient(1000px 600px at 100% 0%, rgba(0,224,255,.10), transparent 60%),
+        linear-gradient(135deg, var(--mi-blue-1), var(--mi-blue-2));
+      min-height:100%;
+      display:flex; flex-direction:column;
+      padding:
+        calc(env(safe-area-inset-top,0px))
+        calc(max(env(safe-area-inset-right,0px), 10px))
+        0
+        calc(max(env(safe-area-inset-left,0px), 10px));
+    }
+
+    /* Top bar */
+    .topbar{
+      position:sticky; top:0; z-index:10;
+      display:flex; align-items:center; gap:var(--gap-2);
+      height:clamp(50px, 8.5vw, 64px);
+      padding:0 var(--pad-2);
+      background:linear-gradient(90deg, var(--mi-grad-1), var(--mi-grad-2));
+      color:#fff;
+      box-shadow:0 6px 18px rgba(0,0,0,.25);
+      border-radius:0 0 18px 18px;
+    }
+    .burger{width:22px;height:2px;background:#fff;position:relative;border-radius:2px;flex:0 0 22px}
+    .burger::before,.burger::after{content:"";position:absolute;left:0;right:0;height:2px;background:#fff;border-radius:2px}
+    .burger::before{top:-7px}.burger::after{top:7px}
+    .title{font-weight:700;font-size:var(--fs-lg);letter-spacing:.2px;line-height:1}
+
+    /* Main */
+    .wrap{
+      width:100%;
+      max-width:min(720px, 92vw);
+      margin:clamp(16px, 4vw, 36px) auto 24px;
+    }
+
+    .card{
+      background:linear-gradient(180deg,#f9fbff, var(--mi-soft));
+      border-radius:clamp(16px, 2.5vw, 28px);
+      box-shadow:var(--shadow-lg);
+      padding:var(--pad-3);
+    }
+    .lock{
+      width:clamp(56px, 10vw, 76px);
+      height:clamp(56px, 10vw, 76px);
+      border-radius:18px;
+      display:grid;place-items:center;
+      background:linear-gradient(145deg, #cfe1ff, #ffffff);
+      margin:6px auto var(--pad-1);
+      box-shadow:inset 0 0 10px rgba(0,51,255,.12), 0 10px 24px rgba(0,0,0,.08);
+      font-size:clamp(24px, 4.5vw, 32px);
+    }
+    .card h1{ text-align:center;margin:6px 0 var(--pad-1);font-size:var(--fs-2xl);line-height:1.2;color:#0e2a6a;font-weight:700;}
+    .muted{color:#3b4e86;font-weight:500;text-align:center;margin:0 8px var(--pad-2);font-size:var(--fs-sm)}
+
+    .warning{
+      background:var(--mi-warning); border:1px solid var(--mi-warning-border);
+      color:#5a4707; border-radius:16px; padding:var(--pad-2);
+      font-weight:600; margin:var(--pad-1) 0 var(--pad-2); font-size:var(--fs-sm);
+    }
+
+    .grid{ display:grid; gap:var(--gap-2); grid-template-columns:1fr; }
+    @media (min-width:700px){ .grid{ grid-template-columns:1fr 1fr; } }
+
+    .field{
+      display:flex; align-items:center; gap:var(--gap-2);
+      background:#e6efff; border:1px solid #d3e1ff;
+      border-radius:16px; padding:var(--pad-2);
+      min-height:clamp(54px, 8.5vw, 72px);
+    }
+    .meta{flex:1;min-width:0}
+    .label{font-size:var(--fs-2xs);color:#2a4484;opacity:.85;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .value{font-weight:700;color:#0d2b73;word-break:break-word;font-size:var(--fs-md);line-height:1.25}
+
+    .copy-btn{
+      flex:0 0 auto;border:none;border-radius:12px;
+      padding:clamp(10px, 1.8vw, 12px) clamp(12px, 2.4vw, 16px);
+      font-weight:700;font-size:var(--fs-sm);cursor:pointer;color:#fff;
+      background:linear-gradient(90deg, var(--mi-grad-1), var(--mi-grad-2));
+      box-shadow:0 8px 18px rgba(0,51,255,.28); transition:transform .06s ease;
+      touch-action:manipulation;
+    }
+    .copy-btn:active{transform:scale(.98)}
+
+    .dot-note{
+      display:flex; align-items:center; gap:var(--gap-2);
+      color:#163a8f; background:var(--mi-soft-2); border:1px dashed #bcd0ff;
+      padding:var(--pad-2); border-radius:14px; margin:var(--pad-2) 0 var(--pad-1);
+      font-weight:500; font-size:var(--fs-sm);
+    }
+    .dot{width:12px;height:12px;border-radius:50%;
+      background:linear-gradient(90deg, var(--mi-grad-1), var(--mi-grad-2));
+      box-shadow:0 0 10px rgba(0,102,255,.6); flex:0 0 12px;
+    }
+
+    .count-wrap{
+      background:#fff0fb; border:1px solid #ffd3f4;
+      border-radius:14px; padding:var(--pad-2);
+      margin:var(--pad-2) 0 var(--pad-3);
+      color:#611c57; font-weight:600; font-size:var(--fs-sm);
+    }
+    .timer{
+      display:inline-block; margin-top:var(--pad-1); font-weight:800; font-size:var(--fs-md);
+      padding:8px 12px; border-radius:999px;
+      background:linear-gradient(90deg,#7b2cff,#ff55d8); color:#fff;
+      box-shadow:0 8px 18px rgba(123,44,255,.3);
+    }
+
+    .primary{
+      width:100%; border:none; cursor:pointer; touch-action:manipulation;
+      border-radius:16px; padding:clamp(14px, 2.8vw, 18px);
+      font-size:var(--fs-md); font-weight:800; color:#fff;
+      background:linear-gradient(90deg, var(--mi-grad-1), var(--mi-grad-2));
+      box-shadow:0 18px 35px rgba(0,51,255,.35), inset 0 0 10px rgba(0,224,255,.25);
+      transition:transform .06s ease, filter .2s ease;
+    }
+    .primary:active{transform:translateY(1px)}
+    .primary:focus{outline:3px solid rgba(0,224,255,.35); outline-offset:2px}
+
+    .back{
+      display:inline-block;margin-top:var(--pad-2);text-decoration:none;
+      color:#0d3aa6;font-weight:700;font-size:var(--fs-sm);
+      text-underline-offset:3px;
+    }
+
+    /* ===== MiAmor 3D / Zebra / Hearts Footer ===== */
+    footer.miamor{
+      position:relative;
+      margin-top:28px;
+      color:#fff;
+      overflow:hidden;
+      padding:clamp(24px, 6vw, 44px) clamp(16px, 5vw, 40px);
+      background:
+        /* zebra curves */
+        repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 14px, rgba(255,255,255,0) 14px 34px),
+        /* hearts */
+        radial-gradient(30px 30px at 12% 30%, rgba(255,105,180,.22), transparent 60%),
+        radial-gradient(26px 26px at 22% 45%, rgba(0,224,255,.18), transparent 60%),
+        radial-gradient(34px 34px at 82% 60%, rgba(255,105,180,.22), transparent 60%),
+        radial-gradient(28px 28px at 72% 35%, rgba(0,224,255,.18), transparent 60%),
+        /* main gradient */
+        linear-gradient(135deg, #042a8f, #0b47d8);
+      box-shadow: 0 -16px 40px rgba(0,0,0,.35), inset 0 10px 40px rgba(255,255,255,.08);
+      border-top-left-radius:28px; border-top-right-radius:28px;
+    }
+    .mi-grid{
+      display:grid; gap:clamp(12px, 2.5vw, 24px);
+      grid-template-columns:1fr;
+      align-items:center;
+    }
+    @media (min-width:760px){
+      .mi-grid{grid-template-columns:auto 1fr auto;}
+    }
+    .mi-brand{
+      display:flex; align-items:center; gap:12px;
+      font-weight:800; font-size:clamp(18px, 2.4vw, 28px);
+      text-shadow:0 4px 20px rgba(0,0,0,.35);
+    }
+    .mi-logo{
+      width:38px; height:38px; border-radius:50%;
+      background:linear-gradient(135deg,#00e0ff,#7ab8ff);
+      box-shadow:inset 0 0 10px rgba(255,255,255,.6), 0 8px 20px rgba(0,0,0,.35);
+      display:grid; place-items:center; color:#08318b; font-weight:900;
+    }
+    .mi-socials{
+      display:flex; flex-wrap:wrap; gap:12px;
+      justify-content:center;
+    }
+    .mi-socials a{
+      width:40px;height:40px;border-radius:12px; display:grid;place-items:center;
+      background:linear-gradient(135deg, #1139ad, #1f58ff);
+      box-shadow: 0 10px 20px rgba(0,0,0,.35), inset 0 0 10px rgba(255,255,255,.12);
+      text-decoration:none; color:#fff;
+      transition:transform .08s ease;
+    }
+    .mi-socials a:active{transform:translateY(1px)}
+    .mi-legal{
+      text-align:center; opacity:.9; font-size:var(--fs-xs);
+    }
+
+    .glow{
+      position:fixed; right:-12vw; bottom:-18vh; width:min(52vw, 520px); height:min(52vw, 520px);
+      border-radius:50%;
+      background:radial-gradient(closest-side, rgba(0,224,255,.35), transparent 70%);
+      filter:blur(18px); pointer-events:none;
+    }
+    @media (prefers-reduced-motion: reduce){ .primary, .copy-btn{transition:none} }
+  </style>
+</head>
+<body>
+  <!-- Top bar -->
+  <div class="topbar" role="banner">
+    <div class="burger" aria-hidden="true"></div>
+    <div class="title">MiAmor Payment Gateway</div>
+  </div>
+
+  <!-- Main -->
+  <main class="wrap" role="main">
+    <section class="card" aria-label="Payment card">
+      <div class="lock" aria-hidden="true">🔒</div>
+      <h1>Tapify Payment Gateway</h1>
+      <p class="muted">Kindly proceed to your bank app to complete this transaction.</p>
+
+      <div class="warning">⚠️📌 <strong>WARNING:</strong> DO NOT PAY WITH OPAY</div>
+
+      <div class="grid" role="group" aria-label="Payment details">
+        <div class="field">
+          <div class="meta">
+            <div class="label">Account Number</div>
+            <div id="accNo" class="value">7048831912</div>
+          </div>
+          <button class="copy-btn" data-copy="#accNo" aria-label="Copy account number">Copy 📋</button>
+        </div>
+
+        <div class="field">
+          <div class="meta">
+            <div class="label">Bank Name</div>
+            <div id="bank" class="value">MONIEPOINT</div>
+          </div>
+          <button class="copy-btn" data-copy="#bank" aria-label="Copy bank name">Copy 📋</button>
+        </div>
+
+        <div class="field">
+          <div class="meta">
+            <div class="label">Account Name</div>
+            <div id="accName" class="value">GODWIN WISDOM AMADI</div>
+          </div>
+          <button class="copy-btn" data-copy="#accName" aria-label="Copy account name">Copy 📋</button>
+        </div>
+
+        <div class="field">
+          <div class="meta">
+            <div class="label">Amount to Pay</div>
+            <div id="amt" class="value">₦10,000</div>
+          </div>
+          <button class="copy-btn" data-copy="#amt" aria-label="Copy amount">Copy 📋</button>
+        </div>
+      </div>
+
+      <div class="dot-note">
+        <span class="dot" aria-hidden="true"></span>
+        <span>Your logins will be activated immediately after payment.</span>
+      </div>
+
+      <div class="count-wrap">
+        After payment, click the button below to confirm and complete your registration.
+        <div id="timer" class="timer" aria-live="polite">00:59:59</div>
+      </div>
+
+      <button class="primary">✅ I've completed the payment</button>
+      <a href="#" class="back">Back To Subscription Page</a>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="miamor">
+    <div class="mi-grid">
+      <div class="mi-brand">
+        <div class="mi-logo">mi</div>
+        <div>MiAmor</div>
+      </div>
+
+      <nav class="mi-socials" aria-label="Social links">
+        <!-- WhatsApp -->
+        <a href="#" aria-label="WhatsApp" title="WhatsApp">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.52 3.48A11.86 11.86 0 0 0 12.05.06C5.6.06.4 5.26.4 11.7c0 2.06.54 4.08 1.56 5.86L.02 24l6.6-1.89a11.7 11.7 0 0 0 5.43 1.38h.01c6.45 0 11.65-5.2 11.65-11.64 0-3.11-1.21-6.03-3.2-8.37zm-8.47 18.2c-1.86 0-3.68-.5-5.27-1.44l-.38-.23-3.92 1.12 1.1-3.83-.25-.4A9.93 9.93 0 0 1 2 11.7c0-5.5 4.47-9.96 10-9.96 2.67 0 5.18 1.04 7.07 2.93a9.95 9.95 0 0 1 2.92 7.06c0 5.5-4.47 9.96-10 9.96zm5.85-7.45c-.32-.16-1.88-.93-2.17-1.04-.29-.11-.5-.16-.72.16-.21.32-.83 1.03-1.02 1.25-.19.21-.37.24-.69.08-.32-.16-1.35-.5-2.57-1.59-.95-.85-1.6-1.9-1.79-2.22-.19-.32-.02-.49.14-.65.14-.14.32-.37.49-.56.16-.19.22-.32.33-.54.11-.21.05-.4-.03-.56-.08-.16-.72-1.73-.99-2.37-.26-.63-.52-.54-.72-.55h-.62c-.21 0-.56.08-.85.4-.29.32-1.12 1.09-1.12 2.66 0 1.57 1.15 3.09 1.31 3.3.16.21 2.27 3.47 5.49 4.85.77.33 1.37.53 1.84.68.77.25 1.47.21 2.03.13.62-.09 1.88-.77 2.15-1.51.27-.74.27-1.37.19-1.51-.08-.13-.29-.21-.6-.37z"/>
+          </svg>
+        </a>
+        <!-- TikTok -->
+        <a href="#" aria-label="TikTok" title="TikTok">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12.9 2h3.07a6.8 6.8 0 0 0 4.18 3.9v3.02a9.9 9.9 0 0 1-4.18-.95v6.94a5.9 5.9 0 1 1-5.9-5.9c.3 0 .6.03.88.08v3.14a2.8 2.8 0 1 0 2.1 2.7L12.9 2z"/>
+          </svg>
+        </a>
+        <!-- Telegram -->
+        <a href="#" aria-label="Telegram" title="Telegram">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M9.03 16.89 8.86 21l3.3-3.46 6.86 5.02 3.98-17.43L1.5 11.1l5.4 1.6 12.7-8.08-10.57 10.3z"/>
+          </svg>
+        </a>
+        <!-- X / Twitter -->
+        <a href="#" aria-label="Twitter (X)" title="Twitter (X)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M18.14 2H21l-6.5 7.43L22.5 22h-6.6l-5.17-6.71L4.6 22H2l7.03-8.03L1.8 2h6.75l4.68 6.2L18.14 2zm-1.16 18.4h1.82L7.2 3.5H5.28l11.7 16.9z"/>
+          </svg>
+        </a>
+      </nav>
+
+      <div class="mi-legal">© <span id="yr"></span> MiAmor. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <div class="glow" aria-hidden="true"></div>
+
+  <script>
+    // Year
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    // Copy buttons
+    document.querySelectorAll('.copy-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const target = document.querySelector(btn.dataset.copy);
+        const text = (target?.textContent || "").trim();
+        try{
+          await navigator.clipboard.writeText(text);
+          const original = btn.textContent;
+          btn.textContent = "Copied ✓";
+          setTimeout(()=>btn.textContent = original, 1200);
+        }catch{
+          window.prompt("Copy to clipboard:", text);
+        }
+      }, {passive:true});
+    });
+
+    /* ===== Countdown that starts immediately and never drifts =====
+       Uses wall clock (endAt) so it keeps perfect time even if the tab sleeps. */
+    const TOTAL_SECONDS = 59*60 + 59;         // 00:59:59
+    const timerEl = document.getElementById('timer');
+    const startAt = Date.now();
+    const endAt   = startAt + TOTAL_SECONDS*1000;
+
+    function render(remaining){
+      const h = Math.max(0, Math.floor(remaining/3600));
+      const m = Math.max(0, Math.floor((remaining%3600)/60));
+      const s = Math.max(0, Math.floor(remaining%60));
+      timerEl.textContent =
+        `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    function tick(){
+      const now = Date.now();
+      const remaining = Math.round((endAt - now)/1000);
+      render(remaining);
+      if (remaining > 0){
+        // Schedule exactly on the next second boundary
+        setTimeout(tick, 1000 - (now % 1000));
+      }
+    }
+
+    // Show first state and start immediately on page open
+    render(TOTAL_SECONDS);
+    tick();
+
+    // Correct the timer if user returns to tab
+    document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) tick(); });
+  </script>
+</body>
+</html>
